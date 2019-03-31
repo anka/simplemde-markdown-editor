@@ -1,5 +1,7 @@
-/*global require,module*/
+/* eslint no-useless-escape: off */
+/* global require,module */
 "use strict";
+
 var CodeMirror = require("codemirror");
 require("codemirror/addon/edit/continuelist.js");
 require("./codemirror/tablist");
@@ -10,6 +12,8 @@ require("codemirror/addon/display/placeholder.js");
 require("codemirror/addon/selection/mark-selection.js");
 require("codemirror/mode/gfm/gfm.js");
 require("codemirror/mode/xml/xml.js");
+require("codemirror/addon/hint/show-hint.js");
+
 var CodeMirrorSpellChecker = require("codemirror-spell-checker");
 var marked = require("marked");
 
@@ -40,7 +44,8 @@ var bindings = {
 	"undo": undo,
 	"redo": redo,
 	"toggleSideBySide": toggleSideBySide,
-	"toggleFullScreen": toggleFullScreen
+	"toggleFullScreen": toggleFullScreen,
+	"autocomplete": autocomplete
 };
 
 var shortcuts = {
@@ -181,6 +186,17 @@ function getState(cm, pos) {
 
 // Saved overflow setting
 var saved_overflow = "";
+
+
+/**
+ * Enable autocomplete through codemirror hints.
+ * https://codemirror.net/doc/manual.html#addon_show-hint
+ */
+function autocomplete(editor) {
+	var codemirror = editor.codemirror;
+	codemirror.showHint({});
+}
+
 
 /**
  * Toggle full screen of the editor.
@@ -1369,6 +1385,8 @@ function SimpleMDE(options) {
 	if(options.autosave != undefined && options.autosave.unique_id != undefined && options.autosave.unique_id != "")
 		options.autosave.uniqueId = options.autosave.unique_id;
 
+	// Preparing codemirror options
+	options.codemirror = options.codemirror || {};
 
 	// Update this options
 	this.options = options;
@@ -1479,7 +1497,7 @@ SimpleMDE.prototype.render = function(el) {
 		mode.gitHubSpice = false;
 	}
 
-	this.codemirror = CodeMirror.fromTextArea(el, {
+	var codemirrorOptions = {
 		mode: mode,
 		backdrop: backdrop,
 		theme: "paper",
@@ -1493,7 +1511,11 @@ SimpleMDE.prototype.render = function(el) {
 		allowDropFileTypes: ["text/plain"],
 		placeholder: options.placeholder || el.getAttribute("placeholder") || "",
 		styleSelectedText: (options.styleSelectedText != undefined) ? options.styleSelectedText : true
-	});
+	};
+
+	codemirrorOptions = extend({}, codemirrorOptions, options.codemirror);
+
+	this.codemirror = CodeMirror.fromTextArea(el, codemirrorOptions);
 
 	if(options.forceSync === true) {
 		var cm = this.codemirror;
@@ -1532,7 +1554,7 @@ function isLocalStorageAvailable() {
 		try {
 			localStorage.setItem("smde_localStorage", 1);
 			localStorage.removeItem("smde_localStorage");
-		} catch(e) {
+		} catch (e) {
 			return false;
 		}
 	} else {

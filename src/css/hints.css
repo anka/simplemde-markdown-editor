@@ -1,0 +1,4 @@
+/* Increase hints z-index for usage in e.g. bootstrap modals */
+.CodeMirror-hints {
+    z-index: 9999;
+}

@@ -1,3 +1,37 @@
+# SimpleMDE - Autocomplete extension
+Added [show hint addon](https://codemirror.net/doc/manual.html#addon_show-hint) from Codemirror to enable autocomplete behaviour. For better configuration options of codemirror, it is no possible to pass additional options with the `codemirror` key during initialization.
+
+A simple example to enable autocomplete by using an keyboard shortcut `Alt + Space` and filter a list of words by the current phrase is shown below:
+
+```CoffeeScript
+class AutocompleteExample 
+  
+  constructor: () ->
+    $(".autocomplete-enabled-input").each (index, elem) =>
+      shortcuts = { "autocomplete": "Alt-Space" }
+      codemirrorOpts = { hintOptions: { hint: this.autocompleteWord } }
+      new SimpleMDE({ element: elem, shortcuts: shortcuts, codemirror: codemirrorOpts})
+
+  autocompleteWord: (cm, option) =>
+    cursor = cm.getCursor()
+    phrasePos = cm.findWordAt(cursor)
+    phrase = cm.getRange(phrasePos.anchor, phrasePos.head)
+
+    words = ["java", "perl", "sql", "go", "python"]
+
+    search_regex = new RegExp(phrase, 'i')
+    filteredWords = words.filter (w) -> w.match(search_regex)
+
+    return {
+      from: phrasePos.anchor,
+      to: cm.getDoc().getCursor(),
+      list: filteredWords
+    }
+
+```
+
+
+
 # SimpleMDE - Markdown Editor
 A drop-in JavaScript textarea replacement for writing beautiful and understandable Markdown. The WYSIWYG-esque editor allows users who may be less experienced with Markdown to use familiar toolbar buttons and shortcuts. In addition, the syntax is rendered while editing to clearly show the expected result. Headings are larger, emphasized words are italicized, links are underlined, etc. SimpleMDE is one of the first editors to feature both built-in autosaving and spell checking.
 
